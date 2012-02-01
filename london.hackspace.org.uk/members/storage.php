@@ -42,30 +42,30 @@ if (isset($_POST['update_box'])) {
 
 <h2>Storage</h2>
 
-<h3>Your Storage Boxes</h3>
+<p>As a member you get access to a storage box.</p>
 
 <? if ($box_loc) {
     echo '
     <div style="margin:0 auto; text-align:center;">
         <img src="/members/storage_image.php?box='.$box_loc.'" alt="box location" />
     </div>';
-    echo '<p style="text-align:center;">Use this <a href="/members/storage_image.php?box='.$box_loc.'">link</a>
+    echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?box='.$box_loc.'">link</a>
         to share this image.</p>';
 } ?>
 
-
-<p>As a member you get access to a storage box.</p>
+<h3>Your Storage Boxes</h3>
 
 <form method="POST">
     <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
     <input type="hidden" name="update_box" value="" />
 
-    <table style="text-align: center">
+    <table style="text-align: center;">
         <tr>
-            <th>Box ID</th>
-            <th>Location</th>
-            <th>Show Location</th>
-            <th>Remove</th>
+            <th style="text-align: center;">Box ID</th>
+            <th style="text-align: center;">Location</th>
+            <th style="text-align: center;">Show Location</th>
+            <th style="text-align: center;">Label</th>
+            <th style="text-align: center;">Remove</th>
         </tr>
         <? foreach($mem->buildBoxes() as $box): ?>
         <tr>
@@ -73,6 +73,9 @@ if (isset($_POST['update_box'])) {
             <td><?=$box[1]?></td>
             <td>
                 <input type="submit" name="show_<?=$box[0]?>" value="Show" />
+            </td>
+            <td>
+                <input type="submit" name="label_<?=$box[0]?>" value="Generate" />
             </td>
             <td>
                 <input type="submit" name="delete_<?=$box[0]?>" value="Delete" />
@@ -83,23 +86,14 @@ if (isset($_POST['update_box'])) {
 </form>
 
 <h3>Add a New Box</h3>
+
 <form method="POST">
     <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
     <input type="hidden" name="add_box" value="" />
 
-    <table>
-        <tr>
-            <td><label for="box_id">Box ID:</label></td>
-            <td><input type="text" name="box_id" size="10" /></td>
-        </tr>
-        <tr>
-            <td><label for="box_location">Box Loction:</label></td>
-            <td><input type="text" name="box_location" size="10" /></td>
-        </tr>
-        <tr>
-            <td colspan="2"><input type="submit" name="submit" value="Add box" /></td>
-        </tr>
-    </table>
+    <label for="box_location">Box Loction:</label>
+    <input type="text" name="box_location" size="10" />
+    <input type="submit" name="submit" value="Add box" />
 </form>
 
 <h3>Lookup a Member's Box</h3>
