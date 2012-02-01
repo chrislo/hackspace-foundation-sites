@@ -1,7 +1,7 @@
 <?
 // input
-$box_loc = "s01b01";
-if (array_key_exists('box', $_GET)) {
+$box_loc = False;
+if (isset($_GET['box'])) {
     $box_loc = $_GET['box'];
 }
 
@@ -12,10 +12,10 @@ class StorageLocationImage {
 
     function StorageLocationImage() {
         // image locations
-        $this->shelves_filename = "images/members_storage/shelves.png";
-        $this->shelf_filename = "images/members_storage/shelf.png";
-        $this->shelfmarker_filename = "images/members_storage/shelf_marker.png";
-        $this->box_filename = "images/members_storage/box.png";
+        $this->shelves_filename = "../images/members_storage/shelves.png";
+        $this->shelf_filename = "../images/members_storage/shelf.png";
+        $this->shelfmarker_filename = "../images/members_storage/shelf_marker.png";
+        $this->box_filename = "../images/members_storage/box.png";
 
         // image settings
         $this->marker_offset_x = -5;   // used to offset position so corner reference works when image rotated
@@ -26,7 +26,7 @@ class StorageLocationImage {
         // canvas settings
         $this->img_width = 500;
         $this->img_height = 360;
-        $this->scale = 1.0;         // to rescale the resultant image
+        $this->scale = 0.5;         // to rescale the resultant image
     }
 
     function get_shelf_locs() {

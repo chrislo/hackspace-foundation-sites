@@ -35,6 +35,7 @@ function menulink($url, $name, $title) {
         <?=menulink('/members/wiki.php', 'wiki', 'Wiki Access')?>
     <? } ?>
         <?=menulink('/members/cards.php', 'cards', 'Cards')?>
+        <?=menulink('/members/storage.php', 'storage', 'Storage')?>
         <?=menulink('/members/edit.php', 'edit', 'Edit Account')?>
 <? } ?>
     </ul>
