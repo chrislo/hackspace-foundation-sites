@@ -5,164 +5,170 @@ if (array_key_exists('box', $_GET)) {
     $box_loc = $_GET['box'];
 }
 
-// image locations
-$shelves_filename = "images/members_storage/shelves.png";
-$shelf_filename = "images/members_storage/shelf.png";
-$shelfmarker_filename = "images/members_storage/shelf_marker.png";
-$box_filename = "images/members_storage/box.png";
+class StorageLocationImage {
+    var $shelves_filename, $shelf_filename, $shelfmarker_filename, $box_filename;
+    var $marker_offset, $spacing_x, $spacing_y;
+    var $img_width, $img_height, $img, $scale;
 
-// image settings
-$marker_offset = 5; // used to offset position so corner reference works when image rotated
-$spacing_x = 20; // spacing between floorplan and shelf
-$spacing_y = 0; 
+    function StorageLocationImage() {
+        // image locations
+        $this->shelves_filename = "images/members_storage/shelves.png";
+        $this->shelf_filename = "images/members_storage/shelf.png";
+        $this->shelfmarker_filename = "images/members_storage/shelf_marker.png";
+        $this->box_filename = "images/members_storage/box.png";
 
-// canvas settings
-$img_width = 500;
-$img_height = 360;
+        // image settings
+        $this->marker_offset_x = -5;   // used to offset position so corner reference works when image rotated
+        $this->marker_offset_y = 0;
+        $this->spacing_x = 20;      // spacing between floorplan and shelf sub-images
+        $this->spacing_y = 0;
 
-function get_shelf_locs() {
-    return array(
-        '01' => array(11, 40, 1),
-        '02' => array(11, 101, 1),
-        '03' => array(11, 163, 1),
-        '04' => array(11, 225, 1),
-        '05' => array(75, 11, 3),
-        '06' => array(75, 73, 3),
-        '07' => array(75, 135, 3),
-        '08' => array(75, 197, 3),
-        '09' => array(75, 259, 3),
-        '10' => array(76, 321, 2),
-        '11' => array(107, 11, 1),
-        '12' => array(107, 73, 1),
-        '13' => array(107, 135, 1),
-        '14' => array(107, 197, 1),
-        '15' => array(107, 259, 1),
-        '16' => array(171, 11, 3),
-        '17' => array(171, 73, 3),
-        '18' => array(203, 11, 1),
-        '19' => array(203, 73, 1)
-    );
-}
+        // canvas settings
+        $this->img_width = 500;
+        $this->img_height = 360;
+        $this->scale = 1.0;         // to rescale the resultant image
+    }
 
-function get_box_locs() {
-    return array(
-        '01' => array(18, 303),
-        '02' => array(104, 303),
-        '03' => array(18, 255),
-        '04' => array(104, 255),
-        '05' => array(18, 207),
-        '06' => array(104, 207),
-        '07' => array(18, 159),
-        '08' => array(104, 159),
-        '09' => array(18, 111),
-        '10' => array(104, 111),
-        '11' => array(18, 63),
-        '12' => array(104, 63),
-        '13' => array(18, 15),
-        '14' => array(104, 15)
-    );
-}
+    function get_shelf_locs() {
+        return array(
+            '01' => array(11, 40, 1),
+            '02' => array(11, 101, 1),
+            '03' => array(11, 163, 1),
+            '04' => array(11, 225, 1),
+            '05' => array(75, 11, 3),
+            '06' => array(75, 73, 3),
+            '07' => array(75, 135, 3),
+            '08' => array(75, 197, 3),
+            '09' => array(75, 259, 3),
+            '10' => array(76, 321, 2),
+            '11' => array(107, 11, 1),
+            '12' => array(107, 73, 1),
+            '13' => array(107, 135, 1),
+            '14' => array(107, 197, 1),
+            '15' => array(107, 259, 1),
+            '16' => array(171, 11, 3),
+            '17' => array(171, 73, 3),
+            '18' => array(203, 11, 1),
+            '19' => array(203, 73, 1)
+        );
+    }
 
-function decode_location($loc, $output) {
-    $shelf_locs = get_shelf_locs();
-    $box_locs = get_box_locs();
+    function get_box_locs() {
+        return array(
+            '01' => array(18, 303),
+            '02' => array(104, 303),
+            '03' => array(18, 255),
+            '04' => array(104, 255),
+            '05' => array(18, 207),
+            '06' => array(104, 207),
+            '07' => array(18, 159),
+            '08' => array(104, 159),
+            '09' => array(18, 111),
+            '10' => array(104, 111),
+            '11' => array(18, 63),
+            '12' => array(104, 63),
+            '13' => array(18, 15),
+            '14' => array(104, 15)
+        );
+    }
 
-    $do = preg_match("/^s(\d\d)b(\d\d)$/i", $loc, $matches);
-    if ($do) {
-        if (array_key_exists($matches[1], $shelf_locs) && array_key_exists($matches[2], $box_locs)) {
-            return array($shelf_locs[$matches[1]], $box_locs[$matches[2]]);
+    function decode_location($loc) {
+        $shelf_locs = $this->get_shelf_locs();
+        $box_locs = $this->get_box_locs();
+
+        $do = preg_match("/^s(\d\d)b(\d\d)$/i", $loc, $matches);
+        if ($do) {
+            if (array_key_exists($matches[1], $shelf_locs) && array_key_exists($matches[2], $box_locs)) {
+                return array($shelf_locs[$matches[1]], $box_locs[$matches[2]]);
+            }
         }
-    }
-    //invalid box location
-    return False;
-}
-
-function transfer_image($dst, $src, $dst_x, $dst_y) {
-    $src_x = 0;
-    $src_y = 0;
-    $src_w = imagesx($src);
-    $src_h = imagesy($src);
-    imagecopy($dst, $src, $dst_x, $dst_y, $src_x, $src_y, $src_w, $src_h);
-}
-
-function generate_base($base_file1, $base_file2, $img_w, $img_h, $space_x, $space_y) {
-    // load images
-    $shelves_img = imagecreatefrompng($base_file1);
-    $shelf_img = imagecreatefrompng($base_file2);
-
-    if ($shelves_img && $shelf_img) {
-        // create canvas
-        $img = imagecreate($img_w, $img_h);
-
-        // draw shelves
-        $dst_x = 0;
-        $dst_y = 0;
-        transfer_image($img, $shelves_img, $dst_x, $dst_y);
-
-        // draw shelf
-        $dst_x = imagesx($shelves_img) + $space_x;
-        $dst_y = 0 + $space_y;
-        transfer_image($img, $shelf_img, $dst_x, $dst_y);
-
-        return array($img, $shelves_img, $shelf_img);
-    }
-    else {
-        echo('Invalid base image(s)');
+        //invalid box location
         return False;
     }
-}
+    
+    function transfer_image($dst, $src, $dst_x, $dst_y) {
+        $src_x = 0;
+        $src_y = 0;
+        $src_w = imagesx($src);
+        $src_h = imagesy($src);
+        imagecopy($dst, $src, $dst_x, $dst_y, $src_x, $src_y, $src_w, $src_h);
+    }
 
-function generate_image($imgs, $marker_locs, $shelfmarker_filename, $box_filename, $spacing_x, $spacing_y) {
-    // load images
-    $shelfmarker_img = imagecreatefrompng($shelfmarker_filename);
-    $box_img = imagecreatefrompng($box_filename);
+    function generate_base_image() {
+        $shelves_img = imagecreatefrompng($this->shelves_filename);
+        $shelf_img = imagecreatefrompng($this->shelf_filename);
 
-    if ($shelfmarker_img && $box_img) {
-        // draw shelf marker onto canvas
-        $dst_x = $marker_locs[0][0];
-        $dst_y = $marker_locs[0][1];
+        if ($shelves_img && $shelf_img) {
+            $this->img = imagecreate($this->img_width, $this->img_height);
+            
+            // draw shelves floor plan
+            $this->transfer_image($this->img, $shelves_img, 0, 0);
 
-        // if rotating 270 then offset position to maintain top-left reference points
-        if ($marker_locs[0][2] == 3) {
-            $dst_x = $dst_x - $marker_offset;
+            // draw shelf
+            $dst_x = imagesx($shelves_img) + $this->spacing_x;
+            $dst_y = $this->spacing_y;
+            $this->transfer_image($this->img, $shelf_img, $dst_x, $dst_y);
+            return True;
         }
-
-        // rotate
-        $angle = $marker_locs[0][2] * -90;
-        $rotated = imagerotate($shelfmarker_img, $angle, 0);
-        transfer_image($imgs[0], $rotated, $dst_x, $dst_y);
-
-
-
-        // draw box
-        $dst_x = imagesx($imgs[1]) + $marker_locs[1][0] + $spacing_x;
-        $dst_y = $marker_locs[1][1] + $spacing_y;
-        transfer_image($imgs[0], $box_img, $dst_x, $dst_y);
-
-        //output
-        header('Content-type: image/png');
-        imagepng($img);
+        echo('Invalid base image(s)');
+        return False;     
     }
-    else {
+
+    function generate_image($marker_locs) {
+        //load markers
+        $shelfmarker_img = imagecreatefrompng($this->shelfmarker_filename);
+        $boxmarker_img = imagecreatefrompng($this->box_filename);
+        
+        //load base image to help with positioning
+        $shelves_img = imagecreatefrompng($this->shelves_filename);
+        if ($shelfmarker_img && $boxmarker_img && $shelves_img) {
+            // draw shelf marker onto canvas
+            $dst_x = $marker_locs[0][0];
+            $dst_y = $marker_locs[0][1];
+
+            // if rotating 270 then offset position to maintain top-left reference points
+            if ($marker_locs[0][2] == 3) {
+                $dst_x = $dst_x + $this->marker_offset_x;
+                $dst_y = $dst_y + $this->marker_offset_y;
+            }
+
+            // rotate
+            $angle = $marker_locs[0][2] * -90;
+            $rotated = imagerotate($shelfmarker_img, $angle, 0);
+            $this->transfer_image($this->img, $rotated, $dst_x, $dst_y);
+
+            // draw box
+            $dst_x = imagesx($shelves_img) + $marker_locs[1][0] + $this->spacing_x;
+            $dst_y = $marker_locs[1][1] + $this->spacing_y;
+            $this->transfer_image($this->img, $boxmarker_img, $dst_x, $dst_y);
+
+            return True;
+        }
         echo('Invalid image type or location');
+        return False;
+    }
+
+    function image_from_location($box_location) {
+        $do = $this->generate_base_image();
+        if ($do) {
+            $locs = $this->decode_location($box_location);
+            if ($locs) {
+                $this->generate_image($locs);
+            }
+
+            //resize
+            $new_w = $this->img_width * $this->scale;
+            $new_h = $this->img_height * $this->scale;
+            $img = imagecreate($new_w, $new_h);
+            imagecopyresized($img, $this->img, 0, 0, 0, 0, $new_w, $new_h, $this->img_width, $this->img_height);
+
+            //output
+            header('Content-type: image/png');
+            imagepng($img);
+        }
     }
 }
 
-
-
-
-//determine location
-$locs = decode_location($box_loc);
-
-//generate base image
-$imgs = generate_base($shelves_filename, $shelf_filename, $img_width, $img_height, $spacing_x, $spacing_y);
-if ($imgs) {
-    if ($locs) {
-        // amend base image to have markers
-        generate_image($imgs, $locs, $shelfmarker_filename, $box_filename, $spacing_x, $spacing_y);
-    }
-    else {
-        echo('Invalid box location');
-    }
-}
+$storageimage = new StorageLocationImage;
+$storageimage->image_from_location($box_loc);
 ?>
