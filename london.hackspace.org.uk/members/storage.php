@@ -8,7 +8,43 @@ if (!isset($user)) {
     fURL::redirect('/login.php?forward=/members/storage.php');
 }
 
+
+
+
+// Map Box IDs to Member IDs
+class Box {
+    function getBoxByID($id) {
+        $boxes = array(
+            0 => 1,
+            1 => 1,
+            2 => 1,
+            6 => NULL,
+            7 => NULL
+        );
+        
+        if (array_key_exists($id, $boxes)) {
+            return $boxes[$id];
+        }
+        return False;
+    }
+}
+
+$boxes = new Box;
+
+// Input
+$box_id;
+if (isset($_GET['box_id'])) {
+    $box_id = $_GET['box_id'];
+    
+    $mem_box = $boxes->getBoxByID($box_id);
+}
+
+
+
+
+// Boxes for a member
 class Mem {
+    //get boxes for current user
     function buildBoxes() {
         return array(
             array(0, "s01b10"),
@@ -20,6 +56,8 @@ class Mem {
 
 $mem = new Mem;
 
+
+
 if (isset($_POST['update_box'])) {
     try {
         fRequest::validateCSRFToken($_POST['token']);
@@ -27,8 +65,12 @@ if (isset($_POST['update_box'])) {
             if (isset($_POST['show_' . $box[0]])) {
                 $box_loc = $box[1];
 
-            } else if (isset($_POST['delete_' . $box[0]])) {
+            }
+            else if (isset($_POST['delete_' . $box[0]])) {
                 //delete
+            }
+            else if (isset($_POST['label_' . $box[0]])) {
+                //generate label
             }
         }
     } catch (fValidationException $e) {
@@ -47,9 +89,9 @@ if (isset($_POST['update_box'])) {
 <? if ($box_loc) {
     echo '
     <div style="margin:0 auto; text-align:center;">
-        <img src="/members/storage_image.php?box='.$box_loc.'" alt="box location" />
+        <img src="/members/storage_image.php?loc='.$box_loc.'" alt="box location" />
     </div>';
-    echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?box='.$box_loc.'">link</a>
+    echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?loc='.$box_loc.'">link</a>
         to share this image.</p>';
 } ?>
 
@@ -79,7 +121,7 @@ if (isset($_POST['update_box'])) {
             </td>
             <td>
                 <input type="submit" name="delete_<?=$box[0]?>" value="Delete" />
-            </td>
+            </td>   
         </tr>
         <? endforeach ?>
     </table>

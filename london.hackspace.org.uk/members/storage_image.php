@@ -1,9 +1,51 @@
 <?
 // input
-$box_loc = False;
-if (isset($_GET['box'])) {
-    $box_loc = $_GET['box'];
+$box_loc;
+$box_id;
+if (isset($_GET['loc'])) {
+    $box_loc = $_GET['loc'];
 }
+else if (isset($_GET['box_id'])) {
+    $box_id = $_GET['box_id'];
+}
+
+
+
+class BoxIdImage {
+    var $box_id, $img;
+
+    function construct_url() {
+        // Segments to create query that gets the QR code
+        $start_qr_url = "https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=";
+        $end_qr_url = "&.png";
+        $site = "london.hackspace.org.uk";
+        $action = "/members/storage.php?box_id=";
+
+        return $start_qr_url . $site . $action. $this->box_id . $end_qr_url;
+    }
+
+    function image_from_id($box_id) {
+        $this->box_id = $box_id;
+        $url = $this->construct_url();
+
+        // Fetch QR code
+        $this->img = imagecreatefrompng($url);
+
+        // modify QR code image to include ID
+        $font = 2;
+        $x = 15;
+        $y = 5;
+        $string = "Box ID: " . $this->box_id;
+        $textcolor = imagecolorallocate($img, 0, 0, 0);
+        imagestring($this->img, $font, $x, $y, $string, $textcolor);
+
+        //output
+        header('Content-type: image/png');
+        imagepng($this->img);
+    }
+}
+
+
 
 class StorageLocationImage {
     var $shelves_filename, $shelf_filename, $shelfmarker_filename, $box_filename;
@@ -169,6 +211,12 @@ class StorageLocationImage {
     }
 }
 
-$storageimage = new StorageLocationImage;
-$storageimage->image_from_location($box_loc);
+if ($box_loc) {
+    $loc_img = new StorageLocationImage;
+    $loc_img->image_from_location($box_loc);
+}
+else if ($box_id) {
+    $id_img = new BoxIdImage();
+    $id_img->image_from_id($box_id);
+}
 ?>
