@@ -8,8 +8,7 @@ if (!isset($user)) {
     fURL::redirect('/login.php?forward=/members/storage.php');
 }
 
-
-
+require_once('storage_lib.php');
 
 // Map Box IDs to Member IDs
 class Box {
@@ -18,8 +17,8 @@ class Box {
             0 => 1,
             1 => 1,
             2 => 1,
-            6 => NULL,
-            7 => NULL
+            6 => -1,
+            7 => -1
         );
         
         if (array_key_exists($id, $boxes)) {
@@ -30,15 +29,6 @@ class Box {
 }
 
 $boxes = new Box;
-
-// Input
-$box_id;
-if (isset($_GET['box_id'])) {
-    $box_id = $_GET['box_id'];
-    
-    $mem_box = $boxes->getBoxByID($box_id);
-}
-
 
 
 
@@ -71,6 +61,7 @@ if (isset($_POST['update_box'])) {
             }
             else if (isset($_POST['label_' . $box[0]])) {
                 //generate label
+                $label_box_id = $box[0];
             }
         }
     } catch (fValidationException $e) {
@@ -84,6 +75,36 @@ if (isset($_POST['update_box'])) {
 
 <h2>Storage</h2>
 
+<? 
+if (isset($_GET['box_id'])) {
+    $box_id = $_GET['box_id'];
+    
+    $mem_box = $boxes->getBoxByID($box_id);
+    
+    if ($mem_box >= 0) {
+        //owned box
+        echo '
+        <div>
+            Owned by blah blah
+        </div>';
+    } 
+    else if ($mem_box == -1) {
+        //not owned
+        echo '
+        <div>
+            Not owned would you like to take it?
+        </div>';
+    }
+    else {
+        //unused id
+        echo "
+        <div>
+            This ID hasn't been assigned. Please ensure you entered the correct information.
+        </div>";
+    }
+}
+?>
+
 <p>As a member you get access to a storage box.</p>
 
 <? if ($box_loc) {
@@ -93,7 +114,14 @@ if (isset($_POST['update_box'])) {
     </div>';
     echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?loc='.$box_loc.'">link</a>
         to share this image.</p>';
-} ?>
+}
+else if ($label_box_id) { 
+    echo '
+    <div style="margin:0 auto; text-align:center;">
+        <img src="/members/storage_image.php?id='.$label_box_id.'" alt="box label" />
+    </div>';
+}
+?>
 
 <h3>Your Storage Boxes</h3>
 
@@ -133,19 +161,48 @@ if (isset($_POST['update_box'])) {
     <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
     <input type="hidden" name="add_box" value="" />
 
-    <label for="box_location">Box Loction:</label>
-    <input type="text" name="box_location" size="10" />
+    <label for="add_box_location">Box Loction:</label>
+    <input type="text" name="add_box_location" size="10" />
     <input type="submit" name="submit" value="Add box" />
 </form>
 
-<h3>Lookup a Member's Box</h3>
+<h3>Lookup a Box</h3>
+
 <form>
     <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
-    <input type="hidden" name="lookup_user" value="" />
+    <input type="hidden" name="lookup_box_nick" value="" />
     
-    <label for="user_nick">Nickname:</label>
-    <input type="text" name="box_location" size="20" />
+    <label for="owner_nick">By Owner's Nickname:</label>
+    <input type="text" name="owner_nick" size="20" />
     <input type="submit" name="submit" value="Search" />
 </form>
+
+<form>
+    <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
+    <input type="hidden" name="lookup_box_name" value="" />
+    
+    <label for="owner_name">By Owner's Name:</label>
+    <input type="text" name="owner_name" size="20" />
+    <input type="submit" name="submit" value="Search" />
+</form>
+
+<form>
+    <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
+    <input type="hidden" name="lookup_box_id" value="" />
+    
+    <label for="box_id">By Box ID:</label>
+    <input type="text" name="box_id" size="20" />
+    <input type="submit" name="submit" value="Search" />
+</form>
+
+<form>
+    <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
+    <input type="hidden" name="lookup_box_location" value="" />
+    
+    <label for="look_box_location">By Box Location:</label>
+    <input type="text" name="look_box_location" size="20" />
+    <input type="submit" name="submit" value="Search" />
+</form>
+
 
 <? require('footer.php'); ?>
