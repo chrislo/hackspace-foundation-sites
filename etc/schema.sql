@@ -51,3 +51,9 @@ CREATE TABLE userperms (
     perm_id INTEGER NOT NULL REFERENCES perms(id),
     user_id INTEGER NOT NULL REFERENCES users(id)
 );
+
+CREATE TABLE boxes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES users(id),
+    location CHAR(6) UNIQUE
+);
