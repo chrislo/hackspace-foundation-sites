@@ -206,7 +206,7 @@ class StorageLocationImage {
             $angle = $marker_locs[0][2] * -90;
             $rotated = imagerotate($shelfmarker_img, $angle, 0);
             $this->transfer_image($this->img, $rotated, $dst_x, $dst_y);
-    
+
             // draw box        
             $dst_x = imagesx($shelves_img) + $marker_locs[1][0] + $this->spacing_x;
             $dst_y = $marker_locs[1][1] + $this->spacing_y + $this->header_spacing_y;
@@ -230,7 +230,7 @@ class StorageLocationImage {
             $new_w = $this->img_width * $this->scale;
             $new_h = $this->img_height * $this->scale;
             $img = imagecreatetruecolor($new_w, $new_h);
-            
+
             imagecopyresized($img, $this->img, 0, 0, 0, 0, $new_w, $new_h, $this->img_width, $this->img_height);
 
             //output

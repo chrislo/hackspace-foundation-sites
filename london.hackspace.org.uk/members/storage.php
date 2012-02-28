@@ -10,58 +10,20 @@ if (!isset($user)) {
 
 require_once('storage_lib.php');
 
-// Map Box IDs to Member IDs
-class Box {
-    function getBoxByID($id) {
-        $boxes = array(
-            0 => 1,
-            1 => 1,
-            2 => 1,
-            6 => -1,
-            7 => -1
-        );
-        
-        if (array_key_exists($id, $boxes)) {
-            return $boxes[$id];
-        }
-        return False;
-    }
-}
-
-$boxes = new Box;
-
-
-
-// Boxes for a member
-class Mem {
-    //get boxes for current user
-    function buildBoxes() {
-        return array(
-            array(0, "s01b10"),
-            array(1, "s05b01"),
-            array(2, "s10b04")
-        );
-    }
-}
-
-$mem = new Mem;
-
-
-
 if (isset($_POST['update_box'])) {
     try {
         fRequest::validateCSRFToken($_POST['token']);
-        foreach($mem->buildBoxes() as $box) {
-            if (isset($_POST['show_' . $box[0]])) {
-                $box_loc = $box[1];
+        foreach($user->buildBoxes() as $box) {
+            if (isset($_POST['show_' . $box->getId()])) {
+                $box_loc = $box->getLocation();
 
             }
-            else if (isset($_POST['delete_' . $box[0]])) {
+            else if (isset($_POST['delete_' . $box->getId()])) {
                 //delete
             }
-            else if (isset($_POST['label_' . $box[0]])) {
+            else if (isset($_POST['label_' . $box->getId()])) {
                 //generate label
-                $label_box_id = $box[0];
+                $label_box_id = $box->getId();
             }
         }
     } catch (fValidationException $e) {
@@ -74,36 +36,6 @@ if (isset($_POST['update_box'])) {
 ?>
 
 <h2>Storage</h2>
-
-<? 
-if (isset($_GET['box_id'])) {
-    $box_id = $_GET['box_id'];
-    
-    $mem_box = $boxes->getBoxByID($box_id);
-    
-    if ($mem_box >= 0) {
-        //owned box
-        echo '
-        <div>
-            Owned by blah blah
-        </div>';
-    } 
-    else if ($mem_box == -1) {
-        //not owned
-        echo '
-        <div>
-            Not owned would you like to take it?
-        </div>';
-    }
-    else {
-        //unused id
-        echo "
-        <div>
-            This ID hasn't been assigned. Please ensure you entered the correct information.
-        </div>";
-    }
-}
-?>
 
 <p>As a member you get access to a storage box.</p>
 
@@ -137,18 +69,18 @@ else if ($label_box_id) {
             <th style="text-align: center;">Label</th>
             <th style="text-align: center;">Remove</th>
         </tr>
-        <? foreach($mem->buildBoxes() as $box): ?>
+        <? foreach($user->buildBoxes() as $box): ?>
         <tr>
-            <td><?=$box[0] ?></td>
-            <td><?=$box[1]?></td>
+            <td><?=$box->getId()?></td>
+            <td><?=$box->getLocation()?></td>
             <td>
-                <input type="submit" name="show_<?=$box[0]?>" value="Show" />
+                <input type="submit" name="show_<?=$box->getId()?>" value="Show" />
             </td>
             <td>
-                <input type="submit" name="label_<?=$box[0]?>" value="Generate" />
+                <input type="submit" name="label_<?=$box->getId()?>" value="Generate" />
             </td>
             <td>
-                <input type="submit" name="delete_<?=$box[0]?>" value="Delete" />
+                <input type="submit" name="delete_<?=$box->getId()?>" value="Delete" />
             </td>   
         </tr>
         <? endforeach ?>

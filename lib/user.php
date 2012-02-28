@@ -25,6 +25,14 @@ class User extends fActiveRecord {
         );
     }
 
+    public function buildBoxes() {
+        return fRecordSet::build(
+            'Box',
+            array('user_id=' => $this->getId()),
+            array('location' => 'asc')
+        );
+    }
+
     public function getResetPasswordToken() {
         global $db;
         $db->execute("DELETE FROM password_resets WHERE expires < datetime('now')");
