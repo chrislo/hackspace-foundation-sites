@@ -1,4 +1,11 @@
 <?php
+function get_string_center_pos($string, $font_size, $image_width) {
+    $text_width = imagefontwidth($font_size) * strlen($string);
+    $center = floor($image_width / 2);
+    $x = $center - (floor($text_width/2));
+    return $x;
+}
+
 class BoxIdImage {
     var $box_id, $img, $url;
 
@@ -52,46 +59,48 @@ class StorageLocationImage {
         // image settings
         $this->marker_offset_x = -5;   // used to offset position so corner reference works when image rotated
         $this->marker_offset_y = 0;
-        $this->spacing_x = 20;      // spacing between floorplan and shelf sub-images
+        $this->spacing_x = 45;      // spacing between floorplan and shelf sub-images
         $this->spacing_y = 0;
+        $this->header_spacing_y = 30;
 
         // canvas settings
         $this->img_width = 500;
-        $this->img_height = 360;
+        $this->img_height = 400;
         $this->scale = 0.5;         // to rescale the resultant image
 
         $this->box_loc = $box_loc;
     }
 
     function get_shelf_locs() {
-        //x, y, and orientation of each shelf
-        //x and y in pixels
-        //orientation: N = 0, E = 1, S = 2, W = 3
+        // x, y, and orientation of each shelf
+        // x and y in pixels
+        // orientation: N = 0, E = 1, S = 2, W = 3
         return array(
-            '01' => array(11, 40, 1),
-            '02' => array(11, 101, 1),
-            '03' => array(11, 163, 1),
-            '04' => array(11, 225, 1),
+            '01' => array(11, 225, 1),
+            '02' => array(11, 163, 1),
+            '03' => array(11, 101, 1),
+            '04' => array(11, 40, 1),
             '05' => array(75, 11, 3),
             '06' => array(75, 73, 3),
             '07' => array(75, 135, 3),
             '08' => array(75, 197, 3),
             '09' => array(75, 259, 3),
             '10' => array(76, 321, 2),
-            '11' => array(107, 11, 1),
-            '12' => array(107, 73, 1),
+            '11' => array(107, 259, 1),
+            '12' => array(107, 197, 1),
             '13' => array(107, 135, 1),
-            '14' => array(107, 197, 1),
-            '15' => array(107, 259, 1),
+            '14' => array(107, 73, 1),
+            '15' => array(107, 11, 1),
             '16' => array(171, 11, 3),
             '17' => array(171, 73, 3),
-            '18' => array(203, 11, 1),
-            '19' => array(203, 73, 1)
+            '18' => array(203, 73, 1),
+            '19' => array(203, 11, 1)
         );
     }
 
     function get_box_locs() {
-        //x and y coords in pixels of each box on a shelf
+        // x and y coords in pixels of each box on a shelf
+        // origin top left.
         return array(
             '01' => array(18, 303),
             '02' => array(104, 303),
@@ -125,11 +134,15 @@ class StorageLocationImage {
     }
 
     function transfer_image($dst, $src, $dst_x, $dst_y) {
+        imagecolortransparent($dst, imagecolorallocatealpha($dst, 0, 0, 0, 127));
+
         $src_x = 0;
         $src_y = 0;
         $src_w = imagesx($src);
         $src_h = imagesy($src);
+        imagealphablending($dst, true);
         imagecopy($dst, $src, $dst_x, $dst_y, $src_x, $src_y, $src_w, $src_h);
+        imagealphablending($dst, false);
     }
 
     function generate_base_image() {
@@ -137,15 +150,34 @@ class StorageLocationImage {
         $shelf_img = imagecreatefrompng($this->shelf_filename);
 
         if ($shelves_img && $shelf_img) {
-            $this->img = imagecreate($this->img_width, $this->img_height);
+            //create base
+            $this->img = imagecreatetruecolor($this->img_width, $this->img_height);
+            imagecolortransparent($this->img, imagecolorallocatealpha($this->img, 0, 0, 0, 127));
+            imagealphablending($this->img, false);
+            imagesavealpha($this->img, true);
 
+            // draw background
+            $white = imagecolorallocate($this->img, 255, 255, 255);
+            imagefilledrectangle($this->img, 0, 0, $this->img_width, $this->img_height, $white);
+
+            // write header
+            $font = 'arial';
+            $font_size = 20;
+            $string = "Box Location: " . $this->box_loc;
+            $x = get_string_center_pos($string, $font_size, $this->img_width);
+            $y = 20;
+            $textcolor = imagecolorallocate($this->img, 0, 0, 0);
+            imagealphablending($this->img, true);
+            $result = imagettftext($this->img, $font_size, 0, $x, $y, $textcolor, $font, $string);
+            imagealphablending($this->img, false);
+ 
             // draw shelves floor plan
-            $this->transfer_image($this->img, $shelves_img, 0, 0);
+            $this->transfer_image($this->img, $shelves_img, 0, $this->header_spacing_y);
 
             // draw shelf
             $dst_x = imagesx($shelves_img) + $this->spacing_x;
             $dst_y = $this->spacing_y;
-            $this->transfer_image($this->img, $shelf_img, $dst_x, $dst_y);
+            $this->transfer_image($this->img, $shelf_img, $dst_x, $dst_y+$this->header_spacing_y);
             return True;
         }
         echo('Invalid base image(s)');
@@ -156,13 +188,13 @@ class StorageLocationImage {
         //load markers
         $shelfmarker_img = imagecreatefrompng($this->shelfmarker_filename);
         $boxmarker_img = imagecreatefrompng($this->box_filename);
-        
+
         //load base image to help with positioning
         $shelves_img = imagecreatefrompng($this->shelves_filename);
         if ($shelfmarker_img && $boxmarker_img && $shelves_img) {
             // draw shelf marker onto canvas
             $dst_x = $marker_locs[0][0];
-            $dst_y = $marker_locs[0][1];
+            $dst_y = $marker_locs[0][1] + $this->header_spacing_y;
 
             // if rotating 270 then offset position to maintain top-left reference points
             if ($marker_locs[0][2] == 3) {
@@ -174,10 +206,10 @@ class StorageLocationImage {
             $angle = $marker_locs[0][2] * -90;
             $rotated = imagerotate($shelfmarker_img, $angle, 0);
             $this->transfer_image($this->img, $rotated, $dst_x, $dst_y);
-
-            // draw box
+    
+            // draw box        
             $dst_x = imagesx($shelves_img) + $marker_locs[1][0] + $this->spacing_x;
-            $dst_y = $marker_locs[1][1] + $this->spacing_y;
+            $dst_y = $marker_locs[1][1] + $this->spacing_y + $this->header_spacing_y;
             $this->transfer_image($this->img, $boxmarker_img, $dst_x, $dst_y);
 
             return True;
@@ -197,7 +229,8 @@ class StorageLocationImage {
             //resize
             $new_w = $this->img_width * $this->scale;
             $new_h = $this->img_height * $this->scale;
-            $img = imagecreate($new_w, $new_h);
+            $img = imagecreatetruecolor($new_w, $new_h);
+            
             imagecopyresized($img, $this->img, 0, 0, 0, 0, $new_w, $new_h, $this->img_width, $this->img_height);
 
             //output
