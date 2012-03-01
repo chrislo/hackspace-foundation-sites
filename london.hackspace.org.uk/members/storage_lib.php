@@ -15,8 +15,8 @@ class BoxIdImage {
         // Segments to create query that gets the QR code
         $start_qr_url = "https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=";
         $end_qr_url = "&.png";
-        $site = "london.hackspace.org.uk";
-        $action = "/members/storage.php?box_id=";
+        $site = "http://london.hackspace.org.uk";
+        $action = "/members/storage_box.php?box_id=";
         $this->url = $start_qr_url . $site . $action. $this->box_id . $end_qr_url;
 
         // Fetch QR code
@@ -24,9 +24,9 @@ class BoxIdImage {
 
         // modify QR code image to include ID
         $font = 2;
-        $x = 30;
-        $y = 5;
         $string = "Box ID: " . $this->box_id;
+        $x = get_string_center_pos($string, $font, imagesx($this->img));
+        $y = 5;
         $textcolor = imagecolorallocate($img, 0, 0, 0);
         imagestring($this->img, $font, $x, $y, $string, $textcolor);
     }

@@ -18,12 +18,23 @@ if (isset($_POST['update_box'])) {
     try {
         fRequest::validateCSRFToken($_POST['token']);
         foreach($user->buildBoxes() as $box) {
-            if (isset($_POST['show_' . $box->getId()])) {
+            if (isset($_POST['loc_' . $box->getId()])) {
+                $location = $_POST['location_' . $box->getId()];
+                if ($location == "") {
+                    $location = NULL;
+                }
+
+                $box->setLocation($location);
+                $box->store();
+                fURL::redirect('/members/storage.php');
+            }
+            else if (isset($_POST['show_' . $box->getId()])) {
                 $box_loc = $box->getLocation();
 
             }
             else if (isset($_POST['disown' . $box->getId()])) {
                 $box->setUserId(NULL);
+                $box->setLocation(NULL);
                 $box->store();
                 fURL::redirect('/members/storage.php');
             }
@@ -31,6 +42,7 @@ if (isset($_POST['update_box'])) {
                 //generate label
                 $label_box_id = $box->getId();
             }
+            
         }
     } catch (fValidationException $e) {
         echo "<p>" . $e->printMessage() . "</p>";
@@ -73,6 +85,8 @@ else if ($label_box_id) {
     <div style="margin:0 auto; text-align:center;">
         <img src="/members/storage_image.php?id='.$label_box_id.'" alt="box label" />
     </div>';
+    echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?id='.$label_box_id.'">link</a>
+        to share this image.</p>';
 }
 ?>
 
@@ -97,7 +111,8 @@ else if ($label_box_id) {
         <tr>
             <td><?=$box->getId()?></td>
             <td>
-                <?=$box->getLocation()?>
+                <input type="text" name="location_<?=$box->getId()?>" value="<?=$box->getLocation()?>" size="6" />
+                <input type="submit" name="loc_<?=$box->getId()?>" value="Save" />
             </td>
             <td>
                 <input type="submit" name="show_<?=$box->getId()?>" value="Show" />
@@ -126,6 +141,7 @@ else if ($label_box_id) {
 
     <label for="box_id">Box ID:</label>
     <select name="box_id">
+        <option value="" selected="selected"></option>
     <? foreach($boxes->getAvailableBoxes() as $box): ?>
         <option value="<?=$box->getId()?>"><?=$box->getId()?></option>
     <? endforeach ?>
@@ -135,17 +151,6 @@ else if ($label_box_id) {
 </form>
 <? endif; ?>
 
-
-<h3>Add a New Box</h3>
-
-<form method="POST">
-    <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
-    <input type="hidden" name="add_box" value="" />
-
-    <label for="add_box_location">Box Loction:</label>
-    <input type="text" name="add_box_location" size="10" />
-    <input type="submit" name="submit" value="Add box" />
-</form>
 
 <h3>Lookup a Box</h3>
 

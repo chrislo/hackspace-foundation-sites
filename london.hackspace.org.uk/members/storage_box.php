@@ -37,71 +37,87 @@ if (isset($_POST['delete_box'])) {
         trigger_error($e);
     }
 }
+?>
 
-if (isset($_GET['box_id'])) {
+
+<h2>Box Management</h2>
+
+<? if (isset($_GET['box_id'])): ?>  
+    <?php 
     $box_id = $_GET['box_id'];
-    
-    $mem_box = $boxes->getBoxByID($box_id);
-    
-    if ($mem_box >= 0) {
-        //owned box
-        echo '
-        <div>
-            Owned by blah blah
-        </div>';
-    } 
-    else if ($mem_box == -1) {
+    $box = new Box(array('id' => $box_id));
+    if ($box->getUserId() != NULL):
+        $owner = new User(array('id' => $box->getUserId()));
+    ?>
+        This box is assigned to:
+        <table>
+            <thead>
+                <tr>
+                    <th>Box ID</th>
+                    <th>Owner's Member Number</th>
+                    <th>Owner's Name</th>
+                    <th>Member</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><?=$box->getId()?></td>
+                    <td><?=$owner->getMemberNumber()?></td>
+                    <td><?=$owner->getFullName()?></td>
+                    <td>
+                        <?php 
+                            if ($owner->isMember()) {
+                                echo 'True';
+                            } else {
+                                echo 'False';
+                            }
+                        ?>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    <?php elseif ($mem_box == -1): ?>
         //not owned
         echo '
         <div>
             Not owned would you like to take it?
         </div>';
-    }
-    else {
-        //unused id
-        echo "
-        <div>
-            This ID hasn't been assigned. Please ensure you entered the correct information.
-        </div>";
-    }
-}
-
-?>
-
-<h2>Box Management</h2>
-
-<?php 
-$boxes = $db->translatedQuery( 'SELECT id FROM boxes ORDER BY id' );
-if ($boxes->countReturnedRows() == 0):
-?>
-<p>No boxes</p>
+    <? endif; ?>
 <? else: ?>
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Delete</th>
-        </tr>
-    </thead>
-    <tbody>
-    <?php foreach( $boxes as $row ): ?>
-        <tr>
-            <td><?=$row['id']?></td>
-            <td>
-                <form method="POST">
-                    <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
-                    <input type="hidden" name="box_id" value="<?=$row['id']?>" />
-                    <input type="submit" name="delete_box" value="Delete Box" />
-                </form>
-            </td>
-        </tr>
-    <?php endforeach; ?> 
-    </tbody>
-</table>
+    <?php 
+    $boxes = $db->translatedQuery( 'SELECT id FROM boxes ORDER BY id' );
+    if ($boxes->countReturnedRows() == 0):
+    ?>
+    <p>No boxes</p>
+    <? else: ?>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+        <?php foreach( $boxes as $row ): ?>
+            <tr>
+                <td><?=$row['id']?></td>
+                <td>
+                    <form method="POST">
+                        <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
+                        <input type="hidden" name="box_id" value="<?=$row['id']?>" />
+                        <input type="submit" name="delete_box" value="Delete Box" />
+                    </form>
+                </td>
+            </tr>
+        <?php endforeach; ?> 
+        </tbody>
+    </table>
+    <? endif; ?>
+
+
+    <form method="POST">
+        <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
+        <input type="submit" name="create_box" value="Create Box" />
+    </form>
 <? endif; ?>
-
-
-<form method="POST">
-    <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
-    <input type="submit" name="create_box" value="Create Box" />
-</form>
+<? require('footer.php'); ?>
