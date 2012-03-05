@@ -7,48 +7,68 @@ function get_string_center_pos($string, $font_size, $image_width) {
 }
 
 class BoxIdImage {
-    var $box_id, $img, $url;
-
     function BoxIdImage($box_id) {
         $this->box_id = $box_id;
 
+        $this->img_width = 130;
+        $this->img_height = 120;
+
+        $this->qr_width = 100;
+        $this->qr_height = 100;
+        
+        $this->spacing_y = 5;
+
         // Segments to create query that gets the QR code
-        $start_qr_url = "https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=";
+        $start_qr_url = "https://chart.googleapis.com/chart?chs=".$this->qr_width."x".$this->qr_height."&cht=qr&chl=";
         $end_qr_url = "&.png";
-        $site = "http://london.hackspace.org.uk";
-        $action = "/members/storage_box.php?box_id=";
+        $site = "http://hack.rs/";
+        $action = "b/";
         $this->url = $start_qr_url . $site . $action. $this->box_id . $end_qr_url;
+    }
+
+    function transfer_image($dst, $src, $dst_x, $dst_y) {
+        $src_x = 0;
+        $src_y = 0;
+        $src_w = imagesx($src);
+        $src_h = imagesy($src);
+        imagecopy($dst, $src, $dst_x, $dst_y, $src_x, $src_y, $src_w, $src_h);
+    }
+
+    function generate_image() {
+        $img = imagecreate($this->img_width, $this->img_height);
 
         // Fetch QR code
-        $this->img = imagecreatefrompng($this->url);
+        $qr_img = imagecreatefrompng($this->url);
+        $x = floor(($this->img_width - $this->qr_width)/2);
+        $y = ($this->img_height - $this->qr_height) + $this->spacing_y;
+        $this->transfer_image($img, $qr_img, $x, $y);
 
         // modify QR code image to include ID
         $font = 2;
         $string = "Box ID: " . $this->box_id;
-        $x = get_string_center_pos($string, $font, imagesx($this->img));
-        $y = 5;
+        $x = get_string_center_pos($string, $font, $this->img_width);
+        $y = 0;
         $textcolor = imagecolorallocate($img, 0, 0, 0);
-        imagestring($this->img, $font, $x, $y, $string, $textcolor);
-    }
+        imagestring($img, $font, $x, $y, $string, $textcolor);
 
-    function get_url() {
-        return $this->url;
+        $string = "http://hack.rs/b/". $this->box_id;
+        $x = get_string_center_pos($string, $font, $this->img_width);
+        $y = 15;
+        imagestring($img, $font, $x, $y, $string, $textcolor);
+        
+        return $img;
     }
 
     function get_image() {
+        $img = $this->generate_image();
+
         //output
         header('Content-type: image/png');
-        imagepng($this->img);
+        imagepng($img);
     }
 }
 
-
-
 class StorageLocationImage {
-    var $shelves_filename, $shelf_filename, $shelfmarker_filename, $box_filename;
-    var $marker_offset, $spacing_x, $spacing_y;
-    var $img_width, $img_height, $img, $scale, $box_loc;
-
     function StorageLocationImage($box_loc) {
         // image locations
         $this->shelves_filename = "../images/members_storage/shelves.png";

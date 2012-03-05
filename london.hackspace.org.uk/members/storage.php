@@ -72,24 +72,6 @@ if (isset($_POST['claim_box'])) {
 
 <p>As a member you get access to a storage box.</p>
 
-<? if ($box_loc) {
-    echo '
-    <div style="margin:0 auto; text-align:center;">
-        <img src="/members/storage_image.php?loc='.$box_loc.'" alt="box location" />
-    </div>';
-    echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?loc='.$box_loc.'">link</a>
-        to share this image.</p>';
-}
-else if ($label_box_id) { 
-    echo '
-    <div style="margin:0 auto; text-align:center;">
-        <img src="/members/storage_image.php?id='.$label_box_id.'" alt="box label" />
-    </div>';
-    echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?id='.$label_box_id.'">link</a>
-        to share this image.</p>';
-}
-?>
-
 <h3>Your Storage Boxes</h3>
 
 <form method="POST">
@@ -129,8 +111,30 @@ else if ($label_box_id) {
     <? endif ?>
 </form>
 
+<? if ($box_loc) {
+    echo '
+    <h3>Box Location</h3>
+    <div style="margin:0 auto; text-align:center;">
+        <img src="/members/storage_image.php?loc='.$box_loc.'" alt="box location" />
+    </div>';
+    echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?loc='.$box_loc.'">link</a>
+        to share this image.</p>';
+}
+else if ($label_box_id) { 
+    echo '
+    <h3>Box Label</h3>
+    <div style="margin:0 auto; text-align:center;">
+        <img src="/members/storage_image.php?id='.$label_box_id.'" alt="box label" />
+    </div>';
+    echo '<p style="text-align:center;">Copy this <a href="/members/storage_image.php?id='.$label_box_id.'">link</a>
+        to share this image.</p>';
+}
+?>
+
 
 <h3>Claim a Box</h3>
+
+<p>If you've found an unused box you can use this to take claim of it. Just select the ID that appears on the box and click claim. Please only claim a box once you're in physical possession of it.</p>
 
 <? if (count($boxes->getAvailableBoxes()) == 0): ?>
     <p>No available boxes.</p>
