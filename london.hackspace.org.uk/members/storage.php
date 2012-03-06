@@ -33,7 +33,7 @@ if (isset($_POST['update_box'])) {
 
             }
             else if (isset($_POST['disown' . $box->getId()])) {
-                $box->setUserId(NULL);
+                $box->setOwned(False);
                 $box->setLocation(NULL);
                 $box->store();
                 fURL::redirect('/members/storage.php');
@@ -56,7 +56,8 @@ if (isset($_POST['claim_box'])) {
     try {
         fRequest::validateCSRFToken($_POST['token']);
         $box = new Box(array('id' => $_POST['box_id']));
-        $box->setUserId($user->getId());
+        $box->setOwnerId($user->getId());
+        $box->setOwned(True);
         $box->store();
     } catch (fValidationException $e) {
         echo "<p>" . $e->printMessage() . "</p>";
@@ -136,7 +137,7 @@ else if ($label_box_id) {
 
 <p>If you've found an unused box you can use this to take claim of it. Just select the ID that appears on the box and click claim. Please only claim a box once you're in physical possession of it.</p>
 
-<? if (count($boxes->getAvailableBoxes()) == 0): ?>
+<? if (count($boxes->getAvailable()) == 0): ?>
     <p>No available boxes.</p>
 <? else: ?>
 <form method="POST">
@@ -146,7 +147,7 @@ else if ($label_box_id) {
     <label for="box_id">Box ID:</label>
     <select name="box_id">
         <option value="" selected="selected"></option>
-    <? foreach($boxes->getAvailableBoxes() as $box): ?>
+    <? foreach($boxes->getAvailable() as $box): ?>
         <option value="<?=$box->getId()?>"><?=$box->getId()?></option>
     <? endforeach ?>
     </select>

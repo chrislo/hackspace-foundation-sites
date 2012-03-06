@@ -12,6 +12,7 @@ if (isset($_POST['create_box'])) {
     try {
         fRequest::validateCSRFToken($_POST['token']);
         $box = new Box();
+        $box->setCreatorId($user->getId());
         $box->store();
         fURL::redirect('/members/storage_box.php');
         exit;
@@ -23,20 +24,6 @@ if (isset($_POST['create_box'])) {
     }
 }
 
-if (isset($_POST['delete_box'])) {
-    try {
-        fRequest::validateCSRFToken($_POST['token']);
-        $box = new Box(array('id' => $_POST['box_id']));
-        $box->delete();
-        fURL::redirect('/members/storage_box.php');
-        exit;
-    } catch (fValidationException $e) {
-        echo "<p>" . $e->printMessage() . "</p>";
-    } catch (fSQLException $e) {
-        echo "<p>An unexpected error occurred, please try again later</p>";
-        trigger_error($e);
-    }
-}
 ?>
 
 
@@ -46,8 +33,8 @@ if (isset($_POST['delete_box'])) {
     <?php 
     $box_id = $_GET['box_id'];
     $box = new Box(array('id' => $box_id));
-    if ($box->getUserId() != NULL):
-        $owner = new User(array('id' => $box->getUserId()));
+    if ($box->getOwnerId() != NULL):
+        $owner = new User(array('id' => $box->getOwnerId()));
     ?>
         This box is assigned to:
         <table>
@@ -85,33 +72,45 @@ if (isset($_POST['delete_box'])) {
     <? endif; ?>
 <? else: ?>
     <?php 
-    $boxes = $db->translatedQuery( 'SELECT id FROM boxes ORDER BY id' );
-    if ($boxes->countReturnedRows() == 0):
+    $boxes = new Box();
+    if (count(Box::getAll()) == 0):
     ?>
-    <p>No boxes</p>
+        <p>No boxes</p>
     <? else: ?>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Delete</th>
-            </tr>
-        </thead>
-        <tbody>
-        <?php foreach( $boxes as $row ): ?>
-            <tr>
-                <td><?=$row['id']?></td>
-                <td>
-                    <form method="POST">
-                        <input type="hidden" name="token" value="<?=fRequest::generateCSRFToken()?>" />
-                        <input type="hidden" name="box_id" value="<?=$row['id']?>" />
-                        <input type="submit" name="delete_box" value="Delete Box" />
-                    </form>
-                </td>
-            </tr>
-        <?php endforeach; ?> 
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Owner</th>
+                    <th>Location</th>
+                    <th>Box Creator</th>
+                    <th>Owned</th>
+                    <th>Active</th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach (Box::getAll() as $row): ?>
+                <tr>
+                    <td><?=$row->getId()?></td>
+                    <td>
+                    <? if ($row->isOwned()) {
+                        $owner = $row->getOwner();
+                        echo $owner->getFullName();
+                    } ?>
+                    </td>
+                    <td><?=$row->getLocation()?></td>
+                    <td>
+                    <?
+                        $creator = $row->getCreator();
+                        echo $creator->getFullName();
+                    ?>
+                    </td>
+                    <td><? if ($row->getOwned()) { echo 'True'; } else { echo 'False'; } ?></td>
+                    <td><? if ($row->getActive()) { echo 'True'; } else { echo 'False'; } ?></td>
+                </tr>
+            <?php endforeach; ?> 
+            </tbody>
+        </table>
     <? endif; ?>
 
 

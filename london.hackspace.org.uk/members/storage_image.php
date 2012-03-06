@@ -4,11 +4,13 @@ require('storage_lib.php');
 // input
 if (isset($_GET['loc'])) {
     $box_loc = $_GET['loc'];
+
     $img = new StorageLocationImage($box_loc);
     $img->get_image();
 }
 else if (isset($_GET['id'])) {
     $box_id = $_GET['id'];
+
     $img = new BoxIdImage($box_id);
     $img->get_image();
 }
@@ -23,7 +25,7 @@ else if (isset($_GET['start_id'])) {
     $columns = 3;
     $num_items = ($end_id - $start_id) + 1;
     for ($i = 0; $i <= $num_items / $columns; $i++) {
-        echo '<div>';
+        echo '<html><head><title>Box QR Sheet</title></head><body><div>';
 
         $upper_limit = $columns;
         $marker = $columns * $i;
@@ -40,7 +42,7 @@ else if (isset($_GET['start_id'])) {
                 <img src="'.$image_url.'" />
             </span>';
         }
-        echo '</div>';
+        echo '</div></body></html>';
     }
 }
 ?>

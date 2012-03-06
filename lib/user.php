@@ -28,7 +28,7 @@ class User extends fActiveRecord {
     public function buildBoxes() {
         return fRecordSet::build(
             'Box',
-            array('user_id=' => $this->getId()),
+            array('owner_id=' => $this->getId(), 'owned=' => True),
             array('location' => 'asc')
         );
     }
