@@ -4,6 +4,7 @@ require_once('config.php');
 require_once('user.php');
 require_once('transaction.php');
 require_once('box.php');
+require_once('storage_location.php');
 require_once('card.php');
 
 $db = new fDatabase('sqlite', dirname(__FILE__) . '/../var/database.db');

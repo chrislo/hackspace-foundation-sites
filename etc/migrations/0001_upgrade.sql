@@ -15,6 +15,7 @@ CREATE TABLE storage_bays (
 
 CREATE TABLE storage_locations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(6) UNIQUE,
     shelf CHAR(2) NOT NULL REFERENCES storage_units(key),
     bay CHAR(2) NOT NULL REFERENCES storage_bays(key),
     UNIQUE(shelf, bay)
@@ -26,7 +27,7 @@ CREATE TABLE boxes (
     creator_id INTEGER NOT NULL REFERENCES users(id),
     owned BOOLEAN NOT NULL DEFAULT 0,
     active BOOLEAN NOT NULL DEFAULT 1,
-    location INTEGER REFERENCES storage_locations(id)
+    location_id INTEGER REFERENCES storage_locations(id)
 );
 
 INSERT INTO storage_units (key, x, y, orientation) VALUES ('01', 11, 225, 1);
@@ -64,6 +65,6 @@ INSERT INTO storage_bays (key, x, y) VALUES ('12', 104, 63);
 INSERT INTO storage_bays (key, x, y) VALUES ('13', 18, 15);
 INSERT INTO storage_bays (key, x, y) VALUES ('14', 104, 15);
 
-INSERT INTO storage_locations (shelf, bay) SELECT storage_units.key, storage_bays.key FROM storage_units, storage_bays;
+INSERT INTO storage_locations (name, shelf, bay) SELECT 's'||storage_units.key||'b'||storage_bays.key, storage_units.key, storage_bays.key FROM storage_units, storage_bays;
 
 END TRANSACTION;

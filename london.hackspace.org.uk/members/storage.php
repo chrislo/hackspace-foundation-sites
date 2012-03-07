@@ -20,21 +20,17 @@ if (isset($_POST['update_box'])) {
         foreach($user->buildBoxes() as $box) {
             if (isset($_POST['loc_' . $box->getId()])) {
                 $location = $_POST['location_' . $box->getId()];
-                if ($location == "") {
-                    $location = NULL;
-                }
 
-                $box->setLocation($location);
+                $box->setLocationId($location);
                 $box->store();
                 fURL::redirect('/members/storage.php');
             }
             else if (isset($_POST['show_' . $box->getId()])) {
-                $box_loc = $box->getLocation();
-
+                $box_loc = $box->getLocationName();
             }
             else if (isset($_POST['disown' . $box->getId()])) {
                 $box->setOwned(False);
-                $box->setLocation(NULL);
+                $box->setLocationId(NULL);
                 $box->store();
                 fURL::redirect('/members/storage.php');
             }
@@ -94,7 +90,16 @@ if (isset($_POST['claim_box'])) {
         <tr>
             <td><?=$box->getId()?></td>
             <td>
-                <input type="text" name="location_<?=$box->getId()?>" value="<?=$box->getLocation()?>" size="6" />
+                <select name="location_<?=$box->getId()?>">
+                    <option value="" selected="selected"></option>
+                <? foreach(Storage_Location::getAvailable($box->getOwnerId()) as $row): ?>
+                    <? if ($box->getLocationId() == $row['id']): ?>
+                    <option value="<?=$row['id']?>" selected="selected"><?=$row['name']?></option>
+                    <? elseif ($row['owner_id'] != $user->getId()): ?>
+                    <option value="<?=$row['id']?>"><?=$row['name']?></option>
+                    <? endif ?>
+                <? endforeach ?>
+                </select>
                 <input type="submit" name="loc_<?=$box->getId()?>" value="Save" />
             </td>
             <td>

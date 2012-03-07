@@ -98,7 +98,7 @@ if (isset($_POST['create_box'])) {
                         echo $owner->getFullName();
                     } ?>
                     </td>
-                    <td><?=$row->getLocation()?></td>
+                    <td><?=$row->getLocationName()?></td>
                     <td>
                     <?
                         $creator = $row->getCreator();

@@ -30,4 +30,15 @@ class Box extends fActiveRecord {
         $creator = new User(array('id' => $this->getCreatorId()));
         return $creator;
     }
+    
+    public function getLocationName() {
+        global $db;
+        $result = $db->query("SELECT id, name FROM storage_locations
+            WHERE id = %s", $this->getLocationId());
+        if ($result->countReturnedRows() > 0) {
+            $res = $result->fetchRow();
+            return $res['name'];
+        }
+        return NULL;
+    }
 }
